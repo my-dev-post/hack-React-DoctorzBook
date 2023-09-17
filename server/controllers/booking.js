@@ -5,6 +5,24 @@ const Doctor = require("../models/Doctors");
 const Booking = require("../models/Booking");
 const { ObjectID } = require("mongodb");
 
+/// pangea
+const Pangea = require("pangea-node-sdk");
+const pangeaDomain = process.env.PANGEA_DOMAIN;
+const auditToken = process.env.PANGEA_AUDIT_TOKEN;
+const auditConfig = new Pangea.PangeaConfig({ domain: pangeaDomain });
+const audit = new Pangea.AuditService(auditToken, auditConfig);
+
+const clientIpAddress = (req) => {
+  return req?.headers["origin"] || req?.socket.remoteAddress || "localhost";
+};
+
+const hostIpAddress = (req) => {
+  return req?.headers["host"] || req?.hostname || "localhost";
+};
+
+
+///
+
 /**
  * /api/getBookings
  */
@@ -144,9 +162,29 @@ module.exports.bookSlot = async (req, res) => {
 
     const newBooking = new Booking(check);
     const bookingData = await newBooking.save();
+
+    audit.log({
+      actor: check.user_id,
+      action: "Book Slot",
+      status: "Success",
+      target:`${hostIpAddress(req)}`,
+      source:`${clientIpAddress(req)}`,
+      message: `Slot on '${check.bookingDate}' booked.`,
+    });
+
     console.log([bookingData]);
     res.json([bookingData]);
   } catch (err) {
+
+    audit.log({
+      actor: check.user_id,
+      action: "Book Slot",
+      status: "Failed",
+      target:`${hostIpAddress(req)}`,
+      source:`${clientIpAddress(req)}`,
+      message: `Slot on '${check.bookingDate}' failed to book.`,
+    });
+
     console.error(err);
     res.status(500).send("Server error");
   }
@@ -166,10 +204,39 @@ module.exports.cancelBooking = async (req, res) => {
     // delete booking by check
     const booking = await Booking.findOneAndDelete(check);
     if (!booking) {
+
+      audit.log({
+        actor: check.user_id,
+        action: "Cancel Booking",
+        status: "Failed",
+        target:`${hostIpAddress(req)}`,
+        source:`${clientIpAddress(req)}`,
+        message: `Slot on '${check.bookingDate}' failed to cancel.`,
+      });
+    
       return res.status(400).json({ status: false, msg: "Booking not found" });
     }
+
+    audit.log({
+      actor: check.user_id,
+      action: "Cancel Booking",
+      status: "Success",
+      target:`${hostIpAddress(req)}`,
+      source:`${clientIpAddress(req)}`,
+      message: `Slot on '${check.bookingDate}' canceled.`,
+    });
+
     res.json({ status: true, msg: "Booking cancelled" });
   } catch (err) {
+    audit.log({
+      actor: check.user_id,
+      action: "Cancel Booking",
+      status: "Failed",
+      target:`${hostIpAddress(req)}`,
+      source:`${clientIpAddress(req)}`,
+      message: `Slot on '${check.bookingDate}' failed to cancel.`,
+    });
+
     console.log(err);
     res.status(500).send("Server error");
   }

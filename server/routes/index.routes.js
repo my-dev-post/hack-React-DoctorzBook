@@ -22,7 +22,7 @@ const registerValidation = {
 };
 
 // Controllers
-const authController = require("../controllers/auth");
+const authController = require("../controllers/auth.js");
 const doctorController = require("../controllers/doctor");
 const bookingController = require("../controllers/booking");
 

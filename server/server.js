@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 
 require("dotenv").config();
 
-const indexRoutes = require("./routes/index.routes");
+const indexRoutes = require("./routes/index.routes.js");
 const { ValidationError } = require("express-validation");
 
 const app = express();

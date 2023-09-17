@@ -31,8 +31,8 @@ const RegisterContainer = ({ isAuthenticated, register }) => {
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(function (position) {
-      // console.log("Latitude is :", position.coords.latitude);
-      // console.log("Longitude is :", position.coords.longitude);
+      console.log("Latitude is :", position.coords.latitude);
+      console.log("Longitude is :", position.coords.longitude);
       setLat(position.coords.latitude);
       setLong(position.coords.longitude);
     });

@@ -3,24 +3,11 @@ const utility = require("../utils/utility");
 let jwt = require("jsonwebtoken");
 const Doctor = require("../models/Doctors");
 
-/// pangea
-const Pangea = require("pangea-node-sdk");
+// const Pangea = require("pangea-node-sdk");
 const pangeaDomain = process.env.PANGEA_DOMAIN;
-const auditToken = process.env.PANGEA_AUDIT_TOKEN;
+const auditToken = process.env.AUDIT_AUTH_TOKEN;
 const auditConfig = new Pangea.PangeaConfig({ domain: pangeaDomain });
 const audit = new Pangea.AuditService(auditToken, auditConfig);
-
-const clientIpAddress = (req) => {
-  return req?.headers["origin"] || req?.socket.remoteAddress || "localhost";
-};
-
-const hostIpAddress = (req) => {
-  return req?.headers["host"] || req?.hostname || "localhost";
-};
-
-
-///
-
 
 /**
  * @api {post} /api/register create
@@ -40,7 +27,7 @@ const hostIpAddress = (req) => {
  *
  * @apiParamExample {json} response-example
  */
-const register = async (req, res) => {
+module.exports.register = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -76,12 +63,9 @@ const register = async (req, res) => {
             doctorData.city = req.body.city;
             doctorData.state = req.body.state;
             doctorData.country = req.body.country;
-            let lat = req.body.location[0] == null ? 0 : req.body.location[0];
-            let long = req.body.location[1] == null ? 0 : req.body.location[1];
             doctorData.location = {
               type: "Point",
               coordinates: req.body.location,
-              coordinates: [lat, long],
             };
           }
 
@@ -103,49 +87,18 @@ const register = async (req, res) => {
                   email: response.email,
                   userType: response.userType,
                 });
-
-                audit.log({
-                  actor: response.email,
-                  action: "Create User",
-                  status: "Success",
-                  target:`${hostIpAddress(req)}`,
-                  source:`${clientIpAddress(req)}`,
-                  message: `User '${response.email}' created.`,
-                });
-      
-      
                 return res.status(200).json({
                   message: "user created successfully",
                   token: token,
                   user: response,
                 });
               } else {
-
-                audit.log({
-                  actor: response.email,
-                  action: "Create User",
-                  status: "Failed",
-                  target:`${hostIpAddress(req)}`,
-                  source:`${clientIpAddress(req)}`,
-                  message: `User '${response.email}' failed to created.`,
-                });
-      
                 return res
                   .status(400)
                   .json({ message: "error occurred", error: error });
               }
             });
           } catch (e) {
-
-            audit.log({
-              actor: response.email,
-              action: "Create User",
-              status: "Failed",
-              target:`${hostIpAddress(req)}`,
-              source:`${clientIpAddress(req)}`,
-              message: `User '${response.email}' failed to created.`,
-            });
-            
             console.log(err);
             return res.status(500).json({ message: "Unable to register" });
           }
@@ -165,7 +118,7 @@ const register = async (req, res) => {
  * @apiParam {string} email email of user
  * @apiParam {string} password password of user
  **/
-const login = async (req, res) => {
+module.exports.login = async (req, res) => {
   try {
     console.log(req.body.email, req.body.password);
     let check = {
@@ -180,47 +133,18 @@ const login = async (req, res) => {
             email: response.email,
             userType: response.userType,
           });
-
-          audit.log({
-            actor: response.email,
-            action: "Login User",
-            status: "Success",
-            target:`${hostIpAddress(req)}`,
-            source:`${clientIpAddress(req)}`,
-            message: `User '${response.email}' logged in.`,
-          });
-
           return res.status(200).json({
             message: "user found, token sent",
             token: token,
             user: response,
           });
         } else {
-
-          audit.log({
-            actor: response.email,
-            action: "Login User",
-            status: "Failed",
-            target:`${hostIpAddress(req)}`,
-            source:`${clientIpAddress(req)}`,
-            message: `User '${response.email}' failed to logged in.`,
-          });
-
           return res
             .status(404)
             .json({ message: "Invalid email id or password" });
         }
       });
     } else {
-      audit.log({
-        actor: response.email,
-        action: "Login User",
-        status: "Failed",
-        target:`${hostIpAddress(req)}`,
-        source:`${clientIpAddress(req)}`,
-        message: `User '${response.email}' failed to logged in.`,
-      });
-
       return res.status(404).json({ message: "Invalid email id or password" });
     }
   } catch (err) {
@@ -234,7 +158,7 @@ const login = async (req, res) => {
  * @apiName authenticationMiddleWare
  * @apiGroup User
  */
-const authenticateMiddleware = async (req, res, next) => {
+module.exports.authenticateMiddleware = async (req, res, next) => {
   let token = req.headers["x-access-token"];
   if (token) {
     jwt.verify(token, process.env.TOKEN_SECRET, async function (err, decoded) {
@@ -269,7 +193,7 @@ const authenticateMiddleware = async (req, res, next) => {
 /**
  * /api/auth
  */
-const getLoginDetails = async (req, res) => {
+module.exports.getLoginDetails = async (req, res) => {
   try {
     // console.log(req.decoded);
     const user = await User.findById(req.decoded.id).select("-password");
@@ -280,5 +204,3 @@ const getLoginDetails = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
-
-module.exports = { getLoginDetails, authenticateMiddleware, login, register } 
