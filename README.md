@@ -1,3 +1,28 @@
+# DoctorzBook with Pangea Integration
+
+I was trying the DoctorzBook app recently.  I came to know about Pangea and decided to add some Pangea services into this booking app.  There are two parts in the app: the server and client.
+
+# Running the server
+
+You can run the server using nodejs version 16 and above.  Follow the following steps after git cloning the rep:
+
+1. cd server
+2. yarn install
+3. yarn start
+
+# Running the client
+
+As for running the client, I encountered several issues with the later version of nodejs.  At the end, I managed to run the client using nodejs version 12.x.  Before following the instructions below, you may need to increase the heap if there is the heap out of memory issue.
+
+1. cd client
+2. yarn install
+3. yarn start
+
+As a side note, I use pm2 process manager to manage the server and client processes.
+
+
+>>> below the line is the original content of the repo <<<
+
 # DoctorzBook
 
 DoctorzBook is a real-time appointments booking application where user can book appointments with doctors from the convenience of their homes. This application provides user with a very intuitive user experience and try to make appointments process as easy as it can get.
