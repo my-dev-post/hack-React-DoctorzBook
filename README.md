@@ -1,6 +1,6 @@
 # DoctorzBook with Pangea Integration
 
-I was trying the DoctorzBook app recently.  I came to know about Pangea and decided to add some Pangea services into this booking app.  There are two parts in the app: the server and client.
+I was trying the DoctorzBook app recently.  I came to know about Pangea and decided to add some Pangea services into this booking app.  There are two parts in the app: the server and client.  Before running the server and client, copy the .env.example file to .env and setup the ENV values of the .env respectively.
 
 # Running the server
 
